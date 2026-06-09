@@ -2,24 +2,26 @@ use crate::{Action, Assembler, Pose, State};
 
 // Executor 表示车辆指令执行器，内部保存两部分状态：
 // - pose：车辆当前所在位置和朝向。
-// - state：车辆当前是否处于倒车状态、加速状态。
+// - state：车辆当前的指令编排器，Box<dyn Assembler> 表示可以在运行时保存不同车辆的 Assembler 实现。
 pub struct Executor {
     pose: Pose,
-    state: State,
+    state: Box<dyn Assembler>,
 }
 
 impl Executor {
     // with_pose() 是构造函数，允许调用者指定车辆初始位置和朝向。
     pub fn with_pose(pose: Pose) -> Self {
-        Self {
-            pose,
-            state: State::default(),
-        }
+        Self::with_state(pose, Box::new(State::default())) // 这里调用普通车的 State，创建普通车执行器。
     }
 
     // 构造函数，用来创建指定位置和朝向的普通车执行器。
     pub fn new(pose: Pose) -> Self {
         Self::with_pose(pose)
+    }
+
+    // 使用指定 Assembler 创建执行器，供后续新增车辆类型复用。
+    pub(crate) fn with_state(pose: Pose, state: Box<dyn Assembler>) -> Self {
+        Executor { pose, state }
     }
 
     // 逐个读取字符串中的字符，并按照命令类型分别处理：
