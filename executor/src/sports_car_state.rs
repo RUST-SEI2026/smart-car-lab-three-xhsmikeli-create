@@ -11,7 +11,7 @@ pub(crate) struct SportsCarState {
 }
 
 impl SportsCarState {
-    // 加速状态下，L/R 在转向前需要先移动一格。
+    // 跑车在加速状态下执行 L/R 时，需要先沿当前方向移动 1 格，然后再转向。
     fn fast_prefix(&self) -> Vec<Action> {
         if self.is_fast {
             vec![Action::Forward(self.direction())]
@@ -38,9 +38,7 @@ impl SportsCarState {
         }
     }
 
-    // 当前移动方向。
-    //  1. 前进状态：1
-    //  2. 倒车状态：-1
+    // 根据倒车状态，确定当前移动方向：正常状态为 1，倒车状态为 -1。
     fn direction(&self) -> i32 {
         if self.is_reverse {
             -1

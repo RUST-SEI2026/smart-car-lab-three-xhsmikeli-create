@@ -3,7 +3,7 @@ use crate::{Action, Assembler};
 // BusState 记录巴士当前的两个运动标志，是否为倒车状态，是否为加速状态。
 // - is_reverse: 倒车状态
 // - is_fast: 加速状态
-// 巴士车身较长，M 指令与普通车一致，L/R 指令需要先移动再转向。
+// 巴士车身较长，占 2 格，坐标代表车头位置，L/R 指令需要先移动再转向。
 #[derive(Default, Copy, Clone)]
 pub(crate) struct BusState {
     is_reverse: bool,
@@ -11,8 +11,7 @@ pub(crate) struct BusState {
 }
 
 impl BusState {
-    // 巴士执行 M/L/R 时都会先移动。
-    // 加速状态下移动两格，普通状态下移动一格。
+    // 巴士执行 M/L/R 指令时，都会先根据当前加速状态移动 1 格或 2 格。
     fn move_prefix(&self) -> Vec<Action> {
         let mut actions = Vec::new();
 
@@ -43,9 +42,7 @@ impl BusState {
         }
     }
 
-    // 当前移动方向。
-    //  1. 前进状态：1
-    //  2. 倒车状态：-1
+    // 根据倒车状态，确定当前移动方向：正常状态为 1，倒车状态为 -1。
     fn direction(&self) -> i32 {
         if self.is_reverse {
             -1
