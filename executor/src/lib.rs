@@ -5,6 +5,7 @@ mod assembler;
 mod executor;
 mod pose;
 mod sports_car_executor;
+mod sports_car_state;
 mod state;
 
 pub(crate) use crate::action::Action;
@@ -12,4 +13,5 @@ pub(crate) use crate::assembler::Assembler;
 pub use crate::executor::Executor;
 pub use crate::pose::Pose;
 pub use crate::sports_car_executor::SportsCarExecutor;
+pub(crate) use crate::sports_car_state::SportsCarState;
 pub(crate) use crate::state::State;
