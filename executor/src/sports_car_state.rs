@@ -3,7 +3,7 @@ use crate::{Action, Assembler};
 // SportsCarState 记录跑车当前的两个运动标志，是否为倒车状态，是否为加速状态。
 // - is_reverse: 倒车状态
 // - is_fast: 加速状态
-// 跑车速度更快，M 指令移动距离更多。
+// 跑车速度更快，M 指令移动距离更多，L/R 指令转向后还会继续移动一格。
 #[derive(Default, Copy, Clone)]
 pub(crate) struct SportsCarState {
     is_reverse: bool,
@@ -70,17 +70,27 @@ impl Assembler for SportsCarState {
         actions
     }
 
-    // 编排跑车 L 指令，当前阶段先保持普通车 L 行为，后续提交再扩展跑车转向后移动。
+    // 编排跑车 L 指令，共四种分别为：
+    // 1. 普通状态：TurnLeft, Forward(1)
+    // 2. 倒车状态：TurnRight, Forward(-1)
+    // 3. 加速状态：Forward(1), TurnLeft, Forward(1)
+    // 4. 倒车加速：Forward(-1), TurnRight, Forward(-1)
     fn turn_left_assemble(&self) -> Vec<Action> {
         let mut actions = self.fast_prefix();
         actions.push(self.turn_left_action());
+        actions.push(Action::Forward(self.direction()));
         actions
     }
 
-    // 编排跑车 R 指令，当前阶段先保持普通车 R 行为，后续提交再扩展跑车转向后移动。
+    // 编排跑车 R 指令，共四种分别为：
+    // 1. 普通状态：TurnRight, Forward(1)
+    // 2. 倒车状态：TurnLeft, Forward(-1)
+    // 3. 加速状态：Forward(1), TurnRight, Forward(1)
+    // 4. 倒车加速：Forward(-1), TurnLeft, Forward(-1)
     fn turn_right_assemble(&self) -> Vec<Action> {
         let mut actions = self.fast_prefix();
         actions.push(self.turn_right_action());
+        actions.push(Action::Forward(self.direction()));
         actions
     }
 
