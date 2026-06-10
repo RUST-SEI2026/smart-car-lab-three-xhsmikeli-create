@@ -3,7 +3,7 @@ use crate::{Action, Assembler};
 // BusState 记录巴士当前的两个运动标志，是否为倒车状态，是否为加速状态。
 // - is_reverse: 倒车状态
 // - is_fast: 加速状态
-// 巴士车身较长，M 指令与普通车一致，L/R 指令后续会扩展为先移动再转向。
+// 巴士车身较长，M 指令与普通车一致，L/R 指令需要先移动再转向。
 #[derive(Default, Copy, Clone)]
 pub(crate) struct BusState {
     is_reverse: bool,
@@ -11,13 +11,18 @@ pub(crate) struct BusState {
 }
 
 impl BusState {
-    // 加速状态下，L/R 在转向前需要先移动一格。
-    fn fast_prefix(&self) -> Vec<Action> {
+    // 巴士执行 M/L/R 时都会先移动。
+    // 加速状态下移动两格，普通状态下移动一格。
+    fn move_prefix(&self) -> Vec<Action> {
+        let mut actions = Vec::new();
+
+        actions.push(Action::Forward(self.direction()));
+
         if self.is_fast {
-            vec![Action::Forward(self.direction())]
-        } else {
-            Vec::new()
+            actions.push(Action::Forward(self.direction()));
         }
+
+        actions
     }
 
     // 根据倒车状态，确定 L 指令对应的实际转向动作。
@@ -57,27 +62,27 @@ impl Assembler for BusState {
     // 3. 加速状态：Forward(1), Forward(1)
     // 4. 倒车加速：Forward(-1), Forward(-1)
     fn move_assemble(&self) -> Vec<Action> {
-        let mut actions = Vec::new();
-
-        actions.push(Action::Forward(self.direction()));
-
-        if self.is_fast {
-            actions.push(Action::Forward(self.direction()));
-        }
-
-        actions
+        self.move_prefix()
     }
 
-    // 编排巴士 L 指令，当前阶段先保持普通车 L 行为，后续提交再扩展为先移动再转向。
+    // 编排巴士 L 指令，共四种分别为：
+    // 1. 普通状态：Forward(1), TurnLeft
+    // 2. 倒车状态：Forward(-1), TurnRight
+    // 3. 加速状态：Forward(1), Forward(1), TurnLeft
+    // 4. 倒车加速：Forward(-1), Forward(-1), TurnRight
     fn turn_left_assemble(&self) -> Vec<Action> {
-        let mut actions = self.fast_prefix();
+        let mut actions = self.move_prefix();
         actions.push(self.turn_left_action());
         actions
     }
 
-    // 编排巴士 R 指令，当前阶段先保持普通车 R 行为，后续提交再扩展为先移动再转向。
+    // 编排巴士 R 指令，共四种分别为：
+    // 1. 普通状态：Forward(1), TurnRight
+    // 2. 倒车状态：Forward(-1), TurnLeft
+    // 3. 加速状态：Forward(1), Forward(1), TurnRight
+    // 4. 倒车加速：Forward(-1), Forward(-1), TurnLeft
     fn turn_right_assemble(&self) -> Vec<Action> {
-        let mut actions = self.fast_prefix();
+        let mut actions = self.move_prefix();
         actions.push(self.turn_right_action());
         actions
     }
