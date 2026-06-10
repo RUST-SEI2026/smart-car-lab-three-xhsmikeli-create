@@ -1,4 +1,4 @@
-use crate::Pose;
+use crate::action::pose::Pose;
 
 // Action 作为原子操作，把复杂业务指令拆成最小可执行单元，其中包括：
 // - Forward(i32)：向当前朝向前进或后退 offset 格。

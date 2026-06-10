@@ -1,4 +1,4 @@
-use crate::Action;
+use crate::action::action::Action;
 
 // Assembler 表示指令编排接口，负责把 M/L/R 指令转换成一组动作 Vec<Action>。
 // 不同车辆后续可以通过实现该接口扩展各自的指令编排逻辑。

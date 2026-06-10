@@ -37,7 +37,7 @@ fn main() {
         }
 
         if cmd == "Q" {
-            println!("Over.");
+            println!("程序已退出。");
             break;
         }
 
